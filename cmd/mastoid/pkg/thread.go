@@ -99,10 +99,13 @@ func (t *Thread) WalkBreadthFirst(f func(n *Node, depth int, siblingIdx int) err
 		for len(queue) > 0 {
 			entry := queue[0]
 			queue = queue[1:]
-			err := f(entry.node, entry.depth, entry.siblingIdx)
-			if err != nil {
-				return err
+			if entry.node.Status != nil {
+				err := f(entry.node, entry.depth, entry.siblingIdx)
+				if err != nil {
+					return err
+				}
 			}
+
 			siblingIdx := 0
 			for pair := entry.node.Descendants.Oldest(); pair != nil; pair = pair.Next() {
 				queue = append(queue, &queueEntry{
@@ -132,10 +135,13 @@ func (t *Thread) WalkDepthFirst(f func(n *Node, depth int, siblingIdx int) error
 		for len(queue) > 0 {
 			entry := queue[len(queue)-1]
 			queue = queue[:len(queue)-1]
-			err := f(entry.node, entry.depth, entry.siblingIdx)
-			if err != nil {
-				return err
+			if entry.node.Status != nil {
+				err := f(entry.node, entry.depth, entry.siblingIdx)
+				if err != nil {
+					return err
+				}
 			}
+
 			siblingIdx := 0
 			for pair := entry.node.Descendants.Oldest(); pair != nil; pair = pair.Next() {
 				queue = append(queue, &queueEntry{
@@ -153,11 +159,14 @@ func (t *Thread) WalkDepthFirst(f func(n *Node, depth int, siblingIdx int) error
 
 func (t *Thread) OutputToProcessor(ctx context.Context, gp middlewares.Processor) error {
 	for _, root := range t.GetRoots() {
+		if root.Status == nil {
+			continue
+		}
+
 		err := gp.AddRow(ctx, types.NewRowFromStruct(root.Status, true))
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
