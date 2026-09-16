@@ -28,7 +28,6 @@ func Authorize(ctx context.Context, credentials_ *Credentials) error {
 		}
 
 		credentials_.GrantToken = grantToken
-		log.Debug().Str("GrantToken", credentials_.GrantToken).Msg("Grant Token")
 
 		client := mastodon.NewClient(&mastodon.Config{
 			Server:       credentials_.Server,
@@ -50,7 +49,6 @@ func Authorize(ctx context.Context, credentials_ *Credentials) error {
 			continue
 		}
 		credentials_.AccessToken = client.Config.AccessToken
-		fmt.Printf("Access Token: %s\n", credentials_.AccessToken)
 
 		credentials, err := client.VerifyAppCredentials(ctx)
 		if err != nil {

@@ -30,8 +30,6 @@ var AuthorizeCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrap(err, "Error storing credentials")
 		}
-		log.Debug().Str("GrantToken", credentials.GrantToken).Msgf("Grant Token")
-		log.Debug().Str("AccessToken", credentials.AccessToken).Msgf("Access Token")
 
 		return nil
 	},
