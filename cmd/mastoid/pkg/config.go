@@ -1,21 +1,31 @@
 package pkg
 
 import (
-	"github.com/pkg/errors"
-	"github.com/spf13/viper"
+	"os"
 	"path/filepath"
 
 	"github.com/mattn/go-mastodon"
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 )
 
-func InitConfig() {
-	viper.SetConfigName("config")                           // config file name without extension
-	viper.SetConfigType("yaml")                             // or viper.SetConfigType("YAML")
-	viper.AddConfigPath(filepath.Join("$HOME", ".mastoid")) // path to look for the config file in
-	_ = viper.ReadInConfig()                                // read in config file
-}
-
 func StoreCredentials(credentials *Credentials) error {
+	configFile := viper.ConfigFileUsed()
+
+	if configFile == "" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return errors.Wrap(err, "could not determine home directory")
+		}
+
+		configDir := filepath.Join(homeDir, ".mastoid")
+		if err := os.MkdirAll(configDir, 0700); err != nil {
+			return errors.Wrap(err, "could not create config directory")
+		}
+
+		configFile = filepath.Join(configDir, "config.yml")
+	}
+
 	viper.Set("client_id", credentials.Application.ClientID)
 	viper.Set("client_secret", credentials.Application.ClientSecret)
 	viper.Set("auth_uri", credentials.Application.AuthURI)
@@ -24,18 +34,14 @@ func StoreCredentials(credentials *Credentials) error {
 	viper.Set("access_token", credentials.AccessToken)
 	viper.Set("server", credentials.Server)
 
-	err := viper.WriteConfig()
-	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-		// config file not found, create it
-		err = viper.SafeWriteConfig()
-		if err != nil {
-			return errors.Wrap(err, "Error writing config")
-		}
-		return nil
+	if err := viper.WriteConfigAs(configFile); err != nil {
+		return errors.Wrap(err, "error writing config")
 	}
-	if err != nil {
-		return errors.Wrap(err, "Error writing config")
+
+	if err := os.Chmod(configFile, 0600); err != nil {
+		return errors.Wrap(err, "error setting config file permissions")
 	}
+
 	return nil
 }
 
@@ -48,7 +54,6 @@ func LoadCredentials() (*Credentials, error) {
 	accessToken := viper.GetString("access_token")
 	server := viper.GetString("server")
 
-	// check that they are valid
 	if clientId == "" || clientSecret == "" {
 		return nil, errors.Errorf("no credentials found")
 	}
@@ -64,6 +69,7 @@ func LoadCredentials() (*Credentials, error) {
 			RedirectURI:  redirectUri,
 		},
 	}
+
 	return app, nil
 }
 
