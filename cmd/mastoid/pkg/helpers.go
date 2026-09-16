@@ -26,22 +26,14 @@ func CreateClientAndAuthenticate(ctx context.Context, credentials *Credentials) 
 	}
 
 	if client.Config.AccessToken == "" {
-		if credentials.GrantToken != "" {
-			log.Debug().Msg("Authenticating with grant token")
-			err = client.AuthenticateToken(ctx, credentials.GrantToken, credentials.Application.RedirectURI)
-			if err != nil {
-				return nil, err
-			}
+		log.Debug().Msg("Authenticating with app")
 
-			log.Debug().Msg("Grant token authenticated")
-		} else {
-			log.Debug().Msg("Authenticating with app")
-			err = client.AuthenticateApp(ctx)
-			if err != nil {
-				return nil, err
-			}
-			log.Debug().Msg("App authenticated")
+		err = client.AuthenticateApp(ctx)
+		if err != nil {
+			return nil, err
 		}
+
+		log.Debug().Msg("App authenticated")
 	} else {
 		log.Debug().Msg("Already has access token")
 	}

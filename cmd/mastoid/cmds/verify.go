@@ -27,20 +27,14 @@ var VerifyCmd = &cobra.Command{
 
 		if client.Config.AccessToken == "" {
 			fmt.Println("No access token found")
-			if credentials.GrantToken != "" {
-				log.Info().Msg("Authenticating with grant token")
-				err = client.AuthenticateToken(ctx, credentials.GrantToken, credentials.Application.RedirectURI)
-				cobra.CheckErr(err)
+			log.Info().Msg("Authenticating with app")
 
-				log.Info().Msg("Grant token authenticated")
-			} else {
-				log.Info().Msg("Authenticating with app")
-				err = client.AuthenticateApp(ctx)
-				cobra.CheckErr(err)
-				log.Info().Msg("App authenticated")
-			}
+			err = client.AuthenticateApp(ctx)
+			cobra.CheckErr(err)
+
+			log.Info().Msg("App authenticated")
 		} else {
-			log.Info().Str("AccessToken", client.Config.AccessToken).Msg("Access token found")
+			log.Info().Msg("Access token found")
 		}
 
 		app, err := client.VerifyAppCredentials(ctx)
