@@ -42,7 +42,6 @@ var RegisterCmd = &cobra.Command{
 
 		log.Info().Msg("App registration successful!\n")
 		log.Debug().Str("ClientID", app.ClientID).Msgf("Client ID")
-		log.Debug().Str("ClientSecret", app.ClientSecret).Msgf("Client Secret")
 		log.Debug().Str("AuthURI", app.AuthURI).Msgf("Auth URI")
 		log.Debug().Str("RedirectURI", app.RedirectURI).Msgf("Redirect URI")
 
@@ -58,9 +57,6 @@ var RegisterCmd = &cobra.Command{
 		if err != nil {
 			return errors.Wrap(err, "Error storing credentials")
 		}
-
-		log.Debug().Str("GrantToken", credentials.GrantToken).Msgf("Grant Token")
-		log.Debug().Str("AccessToken", credentials.AccessToken).Msgf("Access Token")
 
 		log.Info().Msg("App authorization successful!")
 
