@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/mattn/go-mastodon"
 	"github.com/rs/zerolog/log"
-	"regexp"
+	"net/url"
+	"path"
+	"strings"
 )
 
 func CreateClient(credentials *Credentials) (*mastodon.Client, error) {
@@ -46,8 +48,40 @@ func CreateClientAndAuthenticate(ctx context.Context, credentials *Credentials) 
 	return client, nil
 }
 
-// ExtractID matches [0-9]+ in a string and returns the matched value
+// ExtractID returns a Mastodon status ID from either a numeric ID or a status URL.
 func ExtractID(status string) string {
-	reg := regexp.MustCompile(`[0-9]+`)
-	return reg.FindString(status)
+	status = strings.TrimSpace(status)
+	if status == "" {
+		return ""
+	}
+
+	if isNumericID(status) {
+		return status
+	}
+
+	parsed, err := url.Parse(status)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return ""
+	}
+
+	statusID := path.Base(strings.TrimRight(parsed.Path, "/"))
+	if !isNumericID(statusID) {
+		return ""
+	}
+
+	return statusID
+}
+
+func isNumericID(value string) bool {
+	if value == "" {
+		return false
+	}
+
+	for _, r := range value {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+
+	return true
 }
